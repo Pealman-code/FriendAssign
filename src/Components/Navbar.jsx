@@ -158,7 +158,7 @@ const Navbar = () => {
                 className="h-10 w-10 rounded-full cursor-pointer"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               />
-              <span className="absolute hidden group-hover:block bg-gray-800 text-white text-sm rounded py-1 px-2 top-1/2 -left-20 transform -translate-y-1/2">
+              <span className="absolute hidden group-hover:block bg-gray-800 text-white text-sm rounded py-1 px-2 top-1/2 -left-40 transform -translate-y-1/2">
                 {user.displayName || 'User'}
               </span>
               {isDropdownOpen && (
