@@ -12,6 +12,7 @@ import PrivateRoute from './PrivateRoute';
 import UpdateGroup from '../pages/UpdateGroup';
 import AllGroup from '../Components/AllGroup';
 import CreateAssignment from '../pages/CreateAssignment';
+// import PendingAssignments from '../pages/PendingAssignments'; // Assuming this component exists
 
 const router = createBrowserRouter([
   {
@@ -21,12 +22,16 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <AllGroup />, // Render AllGroup at root
+        element: <AllGroup />,
       },
       {
         path: 'assignments',
-        element: <AllGroup />, // Also available at /assignments
+        element: <AllGroup />,
       },
+      // {
+      //   path: 'pending-assignments',
+      //   element: <PrivateRoute element={<PendingAssignments />} />, // Private route
+      // },
     ],
   },
   {
@@ -53,6 +58,10 @@ const router = createBrowserRouter([
         path: 'updateGroup/:id',
         element: <UpdateGroup />,
       },
+      {
+        path: 'create-assignments',
+        element: <PrivateRoute element={<CreateAssignment />} />, // Private route
+      },
     ],
   },
   {
@@ -63,10 +72,6 @@ const router = createBrowserRouter([
     path: '/profile',
     element: <Profile />,
     errorElement: <Profile />,
-  },
-  {
-    path: 'create-assignments',
-    element: <CreateAssignment />,
   },
 ]);
 

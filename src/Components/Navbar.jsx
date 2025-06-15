@@ -58,12 +58,10 @@ const Navbar = () => {
 
   const handleSectionClick = (sectionId, e, path = '/') => {
     e.preventDefault();
-    setActiveSection(sectionId); // Set the clicked section as active
+    setActiveSection(sectionId);
     if (sectionId === 'home') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      navigate(path); // Navigate to home
-    } else if (sectionId === 'subscription-services') {
-      navigate(path); // Navigate to assignments page
+      navigate(path);
     } else {
       const section = document.getElementById(sectionId);
       section ? section.scrollIntoView({ behavior: 'smooth' }) : navigate(path);
@@ -86,23 +84,49 @@ const Navbar = () => {
   };
 
   const links = [
-    { id: 'home', label: 'Home', path: '/' },
+    { id: 'home', label: 'Home', path: '/', isNavLink: true },
     { id: 'subscription-services', label: 'All Assignments', path: '/assignments', isNavLink: true },
+    {
+      id: 'pending-assignments',
+      label: 'Pending',
+      path: '/pending-assignments',
+      isNavLink: true,
+      requiresAuth: true,
+      message: 'Please log in to view pending assignments!',
+    },
+    {
+      id: 'create-assignments',
+      label: 'Create',
+      path: '/auth/create-assignments',
+      isNavLink: true,
+      requiresAuth: true,
+      message: 'Please log in to create assignments!',
+    },
     { id: 'benifit-section', label: 'Features', path: '/' },
     { id: 'faq-section', label: 'FAQ', path: '/' },
     { id: 'contact', label: 'Contact', path: '/contact', isNavLink: true },
-  ].map(({ id, label, path, isNavLink }) =>
+  ].map(({ id, label, path, isNavLink, requiresAuth, message }) =>
     isNavLink ? (
       <li key={id} className="text-lg hover:text-blue-800 transition">
-        <NavLink
-          to={path}
-          className={({ isActive }) =>
-            isActive || activeSection === id ? 'text-blue-600 border-b-2 border-blue-600' : ''
-          }
-          onClick={(e) => handleSectionClick(id, e, path)} // Use handleSectionClick for all links
-        >
-          {label}
-        </NavLink>
+        {requiresAuth ? (
+          <a
+            href={path}
+            onClick={(e) => handleGroupClick(e, path, message)}
+            className={activeSection === id ? 'text-blue-600 border-b-2 border-blue-600' : ''}
+          >
+            {label}
+          </a>
+        ) : (
+          <NavLink
+            to={path}
+            className={({ isActive }) =>
+              isActive || activeSection === id ? 'text-blue-600 border-b-2 border-blue-600' : ''
+            }
+            onClick={(e) => handleSectionClick(id, e, path)}
+          >
+            {label}
+          </NavLink>
+        )}
       </li>
     ) : (
       <li key={id} className="text-lg hover:text-blue-800 transition">
@@ -178,7 +202,7 @@ const Navbar = () => {
                   </li>
                   <li className="text-lg hover:text-blue-800 transition">
                     <NavLink
-                      to="/create-assignments"
+                      to="/auth/create-assignments"
                       className={({ isActive }) => (isActive ? 'text-blue-600 border-b-2 border-blue-600 block p-2' : 'block p-2')}
                       onClick={() => setIsDropdownOpen(false)}
                     >
