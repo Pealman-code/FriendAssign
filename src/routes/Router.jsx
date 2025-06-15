@@ -7,11 +7,11 @@ import Terms from '../pages/Terms';
 import AllGroupDetails from '../Components/AllGroupDetails';
 import ErrorPage from '../pages/ErrorPage';
 import Profile from '../pages/Profile';
-import CreateGroup from '../pages/CreateGroup';
 import MyGroup from '../pages/MyGroup';
 import PrivateRoute from './PrivateRoute';
 import UpdateGroup from '../pages/UpdateGroup';
 import AllGroup from '../Components/AllGroup';
+import CreateAssignment from '../pages/CreateAssignment';
 
 const router = createBrowserRouter([
   {
@@ -41,10 +41,7 @@ const router = createBrowserRouter([
         path: 'services/:id',
         element: <AllGroupDetails />,
       },
-      {
-        path: 'create-group',
-        element: <PrivateRoute element={<CreateGroup />} />,
-      },
+      
       {
         path: 'my-group',
         element: <MyGroup />,
@@ -63,6 +60,10 @@ const router = createBrowserRouter([
     path: '/profile',
     element: <Profile />,
     errorElement: <Profile />,
+  },
+  {
+    path: 'create-assignments',
+    element: <CreateAssignment />,
   },
 ]);
 

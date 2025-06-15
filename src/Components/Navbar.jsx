@@ -173,13 +173,13 @@ const Navbar = () => {
                     </NavLink>
                   </li>
                   <li className="text-lg hover:text-blue-800 transition">
-                    <a
-                      href="#create-group"
-                      onClick={(e) => handleGroupClick(e, '/auth/create-group', 'Please log in to create a group!')}
-                      className="block p-2"
+                    <NavLink
+                      to="/create-assignments"
+                      className={({ isActive }) => (isActive ? 'text-blue-600 border-b-2 border-blue-600 block p-2' : 'block p-2')}
+                      onClick={() => setIsDropdownOpen(false)}
                     >
                       Create Assignments
-                    </a>
+                    </NavLink>
                   </li>
                   <li className="text-lg hover:text-blue-800 transition">
                     <a
