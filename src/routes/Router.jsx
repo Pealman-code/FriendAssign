@@ -21,6 +21,10 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        element: <div />,
+      },
+      {
+        path: 'assignments',
         element: <AllGroup />,
       },
     ],
@@ -41,7 +45,6 @@ const router = createBrowserRouter([
         path: 'services/:id',
         element: <AllGroupDetails />,
       },
-
       {
         path: 'my-group',
         element: <MyGroup />,

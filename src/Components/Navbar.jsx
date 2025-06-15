@@ -9,13 +9,14 @@ const Navbar = () => {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
 
   useEffect(() => {
-    const sections = ['home', 'subscription-services', 'benifit-section', 'faq-section'];
+    const sections = ['home', 'benifit-section', 'faq-section'];
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -57,9 +58,12 @@ const Navbar = () => {
 
   const handleSectionClick = (sectionId, e, path = '/') => {
     e.preventDefault();
-    setActiveSection(sectionId);
+    setActiveSection(sectionId); // Set the clicked section as active
     if (sectionId === 'home') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      navigate(path); // Navigate to home
+    } else if (sectionId === 'subscription-services') {
+      navigate(path); // Navigate to assignments page
     } else {
       const section = document.getElementById(sectionId);
       section ? section.scrollIntoView({ behavior: 'smooth' }) : navigate(path);
@@ -83,7 +87,7 @@ const Navbar = () => {
 
   const links = [
     { id: 'home', label: 'Home', path: '/' },
-    { id: 'subscription-services', label: 'All Assignments', path: '/' },
+    { id: 'subscription-services', label: 'All Assignments', path: '/assignments', isNavLink: true },
     { id: 'benifit-section', label: 'Features', path: '/' },
     { id: 'faq-section', label: 'FAQ', path: '/' },
     { id: 'contact', label: 'Contact', path: '/contact', isNavLink: true },
@@ -95,7 +99,7 @@ const Navbar = () => {
           className={({ isActive }) =>
             isActive || activeSection === id ? 'text-blue-600 border-b-2 border-blue-600' : ''
           }
-          onClick={() => setActiveSection(id)}
+          onClick={(e) => handleSectionClick(id, e, path)} // Use handleSectionClick for all links
         >
           {label}
         </NavLink>

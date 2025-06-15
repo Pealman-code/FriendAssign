@@ -6,13 +6,13 @@ import Features from '../Components/Features';
 import Faq from '../Components/Faq';
 import Footer from '../Components/Footer';
 import Benifit from '../Components/Benifit';
-import AllGroup from '../Components/AllGroup';
 import LoadingSpinner from '../Components/LoadingSpinner';
 
 const HomeLayouts = () => {
   const location = useLocation();
   const navigation = useNavigation();
   const isServiceDetailsPage = location.pathname.startsWith('/services/');
+  const isAssignmentsPage = location.pathname === '/assignments';
 
   return (
     <div className="relative bg-base-100">
@@ -21,7 +21,7 @@ const HomeLayouts = () => {
         <Navbar />
       </header>
       <main>
-        {isServiceDetailsPage ? (
+        {isServiceDetailsPage || isAssignmentsPage ? (
           <Outlet />
         ) : (
           <>
@@ -29,9 +29,6 @@ const HomeLayouts = () => {
             <Features />
             <div id="benifit-section">
               <Benifit />
-            </div>
-            <div id="subscription-services">
-              <AllGroup />
             </div>
             <div id="faq-section">
               <Faq />
