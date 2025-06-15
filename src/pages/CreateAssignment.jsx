@@ -4,7 +4,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import Swal from 'sweetalert2';
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const CreateAssignment = () => {
   const [formData, setFormData] = useState({
@@ -17,7 +17,7 @@ const CreateAssignment = () => {
   });
 
   const [imagePreview, setImagePreview] = useState(null);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,10 +53,9 @@ const CreateAssignment = () => {
       icon: 'success',
       title: 'Success',
       text: 'Assignment created successfully!',
-      timer: 2000, // Auto-close after 2 seconds
+      timer: 2000,
       showConfirmButton: false,
     }).then(() => {
-      // Navigate to AllGroup page after success alert
       setFormData({
         title: '',
         description: '',
@@ -66,7 +65,7 @@ const CreateAssignment = () => {
         dueDate: new Date(),
       });
       setImagePreview(null);
-      navigate('/'); // Redirect to the root route (AllGroup)
+      navigate('/assignments'); // Redirect to AllGroup route
     });
   };
 

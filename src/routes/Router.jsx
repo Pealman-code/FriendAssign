@@ -21,11 +21,11 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <div />,
+        element: <AllGroup />, // Render AllGroup at root
       },
       {
         path: 'assignments',
-        element: <AllGroup />,
+        element: <AllGroup />, // Also available at /assignments
       },
     ],
   },
