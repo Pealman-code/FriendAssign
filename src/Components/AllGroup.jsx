@@ -21,6 +21,15 @@ const AllGroup = () => {
   }
 
   const handleViewClick = (id) => {
+    if (!user) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Not Logged In',
+        text: 'Please log in to view assignment details.',
+      });
+      navigate('/auth/login'); // Redirect to login page
+      return;
+    }
     navigate(`/auth/services/${id}`);
   };
 
