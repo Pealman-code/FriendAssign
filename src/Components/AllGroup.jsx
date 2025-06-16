@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { AuthContext } from '../provider/MyProvider'; // Import AuthContext
+import { AuthContext } from '../provider/MyProvider';
 
 const AllGroup = () => {
   const [assignments, setAssignments] = useState([]);
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext); // Get current user from AuthContext
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     fetch('http://localhost:3000/api/assignments')
@@ -15,18 +15,48 @@ const AllGroup = () => {
       .catch((error) => console.error('Error fetching assignments:', error));
   }, []);
 
-  // Group assignments into chunks of 3 for side-by-side display
   const groupedAssignments = [];
   for (let i = 0; i < assignments.length; i += 3) {
     groupedAssignments.push(assignments.slice(i, i + 3));
   }
 
-  // Handle View button click
   const handleViewClick = (id) => {
     navigate(`/auth/services/${id}`);
   };
 
-  // Handle Delete button click
+  const handleEditClick = (id) => {
+    if (!user) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Not Logged In',
+        text: 'Please log in to edit assignments.',
+      });
+      return;
+    }
+    // Fetch assignment to check ownership
+    fetch(`http://localhost:3000/api/assignments/${id}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.userEmail !== user.email) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Unauthorized',
+            text: 'You can only edit your own assignments.',
+          });
+          return;
+        }
+        navigate(`/auth/updateGroup/${id}`);
+      })
+      .catch((error) => {
+        console.error('Error checking assignment ownership:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to verify assignment ownership.',
+        });
+      });
+  };
+
   const handleDeleteClick = async (id) => {
     if (!user) {
       Swal.fire({
@@ -37,7 +67,6 @@ const AllGroup = () => {
       return;
     }
 
-    // Show confirmation modal
     const result = await Swal.fire({
       title: 'Are you sure?',
       text: 'Do you want to delete this assignment? This action cannot be undone.',
@@ -53,13 +82,12 @@ const AllGroup = () => {
         const response = await fetch(`http://localhost:3000/api/assignments/${id}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userEmail: user.email }), // Send user email
+          body: JSON.stringify({ userEmail: user.email }),
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          // Remove the deleted assignment from state
           setAssignments(assignments.filter((assignment) => assignment._id !== id));
           Swal.fire({
             icon: 'success',
@@ -127,7 +155,7 @@ const AllGroup = () => {
                 </div>
                 <div className="flex justify-end mt-4 space-x-3">
                   <button
-                    className="text-white hover:text-blue-300 relative group"
+                    className="text-white hover:text-blue-300 relative group cursor-pointer"
                     title="View"
                     onClick={() => handleViewClick(assignment._id)}
                   >
@@ -140,8 +168,9 @@ const AllGroup = () => {
                     </span>
                   </button>
                   <button
-                    className="text-white hover:text-yellow-300 relative group"
+                    className="text-white hover:text-yellow-300 relative group cursor-pointer"
                     title="Edit"
+                    onClick={() => handleEditClick(assignment._id)}
                   >
                     <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
@@ -151,7 +180,7 @@ const AllGroup = () => {
                     </span>
                   </button>
                   <button
-                    className="text-white hover:text-red-300 relative group"
+                    className="text-white hover:text-red-300 relative group cursor-pointer"
                     title="Delete"
                     onClick={() => handleDeleteClick(assignment._id)}
                   >
