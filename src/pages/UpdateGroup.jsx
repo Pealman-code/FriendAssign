@@ -41,7 +41,7 @@ const UpdateGroup = () => {
       return;
     }
 
-    fetch(`http://localhost:3000/api/assignments/${id}`)
+    fetch(`https://assignment-11-server-iota-three.vercel.app/api/assignments/${id}`)
       .then(res => res.ok ? res.json() : Promise.reject('Assignment not found or server error'))
       .then(data => {
         if (data.userEmail !== user.email) {
@@ -85,7 +85,7 @@ const UpdateGroup = () => {
     if (!validateForm()) return Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Please fix the errors in the form.' });
 
     try {
-      const res = await fetch(`http://localhost:3000/api/assignments/${id}`, {
+      const res = await fetch(`https://assignment-11-server-iota-three.vercel.app/api/assignments/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, marks: parseInt(formData.marks), dueDate: formData.dueDate.toISOString() }),

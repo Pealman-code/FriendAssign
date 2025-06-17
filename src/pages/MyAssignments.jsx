@@ -25,7 +25,7 @@ const MyAssignments = () => {
     const fetchSubmissions = async () => {
       try {
         // Fetch all submissions (pending and completed)
-        const response = await fetch(`http://localhost:3000/api/submissions`);
+        const response = await fetch(`https://assignment-11-server-iota-three.vercel.app/api/submissions`);
         if (!response.ok) {
           throw new Error('Failed to fetch submissions');
         }

@@ -14,7 +14,7 @@ const AllGroup = () => {
     const queryParams = new URLSearchParams();
     if (difficulty) queryParams.append('difficulty', difficulty);
     if (searchQuery) queryParams.append('search', searchQuery);
-    fetch(`http://localhost:3000/api/assignments?${queryParams}`)
+    fetch(`https://assignment-11-server-iota-three.vercel.app/api/assignments?${queryParams}`)
       .then(res => res.json())
       .then(data => setAssignments(data))
       .catch(err => console.error('Error fetching assignments:', err));
@@ -34,7 +34,7 @@ const AllGroup = () => {
 
   const handleEditClick = id => {
     if (!user) return showLoginError();
-    fetch(`http://localhost:3000/api/assignments/${id}`)
+    fetch(`https://assignment-11-server-iota-three.vercel.app/api/assignments/${id}`)
       .then(res => res.json())
       .then(data => {
         if (data.userEmail !== user.email) {
@@ -49,7 +49,7 @@ const AllGroup = () => {
   const handleDeleteClick = async id => {
     if (!user) return showLoginError();
     try {
-      const res = await fetch(`http://localhost:3000/api/assignments/${id}`);
+      const res = await fetch(`https://assignment-11-server-iota-three.vercel.app/api/assignments/${id}`);
       const data = await res.json();
       if (data.userEmail !== user.email) {
         return Swal.fire({ icon: 'error', title: 'Unauthorized', text: 'You can only delete your own assignments.' });
@@ -63,7 +63,7 @@ const AllGroup = () => {
         confirmButtonText: 'Yes, delete it!'
       });
       if (result.isConfirmed) {
-        const deleteRes = await fetch(`http://localhost:3000/api/assignments/${id}`, {
+        const deleteRes = await fetch(`https://assignment-11-server-iota-three.vercel.app/api/assignments/${id}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userEmail: user.email })
@@ -85,7 +85,7 @@ const AllGroup = () => {
     <div className="mt-20 mb-8 px-4 flex flex-col items-center min-h-screen">
       <h2 className="text-2xl font-bold mb-2 text-center">All Assignments</h2>
       <p className="text-sm text-gray-300 mb-6 text-center max-w-lg">
-        Assignments are structured tasks given to learners to assess their understanding of a particular topic. They help students practice, apply, and reflect on what they’ve learned. In our platform, users can create, submit, and evaluate assignments collaboratively. 
+        Assignments are structured tasks given to learners to assess their understanding of a particular topic. They help students practice, apply, and reflect on what they’ve learned. In our platform, users can create, submit, and evaluate assignments collaboratively.
       </p>
       <div className="mb-6 w-full max-w-3xl flex flex-col sm:flex-row gap-4">
         <input

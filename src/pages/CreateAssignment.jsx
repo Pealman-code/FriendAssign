@@ -60,7 +60,7 @@ const CreateAssignment = () => {
     e.preventDefault();
     if (!validateForm()) return Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Fix form errors.' });
     try {
-      const response = await fetch('http://localhost:3000/api/assignments', {
+      const response = await fetch('https://assignment-11-server-iota-three.vercel.app/api/assignments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

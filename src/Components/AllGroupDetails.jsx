@@ -20,7 +20,7 @@ const AllGroupDetails = () => {
   useEffect(() => {
     const fetchAssignment = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/assignments/${id}`);
+        const response = await fetch(`https://assignment-11-server-iota-three.vercel.app/api/assignments/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch assignment details');
         }
@@ -60,7 +60,7 @@ const AllGroupDetails = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/assignments/${id}/submit`, {
+      const response = await fetch(`https://assignment-11-server-iota-three.vercel.app/api/assignments/${id}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,8 +141,8 @@ const AllGroupDetails = () => {
                   assignment.difficulty === 'Medium'
                     ? 'text-yellow-600'
                     : assignment.difficulty === 'Hard'
-                    ? 'text-red-600'
-                    : 'text-green-600'
+                      ? 'text-red-600'
+                      : 'text-green-600'
                 }
               >
                 Difficulty: {assignment.difficulty}
