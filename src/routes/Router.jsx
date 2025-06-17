@@ -7,11 +7,12 @@ import Terms from '../pages/Terms';
 import AllGroupDetails from '../Components/AllGroupDetails';
 import ErrorPage from '../pages/ErrorPage';
 import Profile from '../pages/Profile';
-import MyGroup from '../pages/MyGroup';
+import MyAssignments from '../pages/MyAssignments';
 import PrivateRoute from './PrivateRoute';
 import UpdateGroup from '../pages/UpdateGroup';
 import AllGroup from '../Components/AllGroup';
 import CreateAssignment from '../pages/CreateAssignment';
+import Pending from '../Components/Pending';
 
 const router = createBrowserRouter([
   {
@@ -47,7 +48,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'my-group',
-        element: <MyGroup />,
+        element: <MyAssignments />,
       },
       {
         path: 'updateGroup/:id',
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
       {
         path: 'create-assignments',
         element: <PrivateRoute element={<CreateAssignment />} />,
+      },
+      {
+        path: 'pending-assignments',
+        element: <PrivateRoute element={<Pending />} />,
       },
     ],
   },

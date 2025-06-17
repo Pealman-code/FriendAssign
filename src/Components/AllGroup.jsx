@@ -67,15 +67,30 @@ const AllGroup = () => {
   };
 
   const handleDeleteClick = async (id) => {
-    if (!user) {
+  if (!user) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Not Logged In',
+      text: 'Please log in to delete assignments.',
+    });
+    return;
+  }
+
+  // Fetch assignment to check ownership
+  try {
+    const response = await fetch(`http://localhost:3000/api/assignments/${id}`);
+    const data = await response.json();
+
+    if (data.userEmail !== user.email) {
       Swal.fire({
         icon: 'error',
-        title: 'Not Logged In',
-        text: 'Please log in to delete assignments.',
+        title: 'Unauthorized',
+        text: 'You can only delete your own assignments.',
       });
       return;
     }
 
+    // Show confirmation only if user is authorized
     const result = await Swal.fire({
       title: 'Are you sure?',
       text: 'Do you want to delete this assignment? This action cannot be undone.',
@@ -88,15 +103,15 @@ const AllGroup = () => {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`http://localhost:3000/api/assignments/${id}`, {
+        const deleteResponse = await fetch(`http://localhost:3000/api/assignments/${id}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userEmail: user.email }),
         });
 
-        const data = await response.json();
+        const deleteData = await deleteResponse.json();
 
-        if (response.ok) {
+        if (deleteResponse.ok) {
           setAssignments(assignments.filter((assignment) => assignment._id !== id));
           Swal.fire({
             icon: 'success',
@@ -109,7 +124,7 @@ const AllGroup = () => {
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: data.message || 'Failed to delete assignment.',
+            text: deleteData.message || 'Failed to delete assignment.',
           });
         }
       } catch (error) {
@@ -121,8 +136,15 @@ const AllGroup = () => {
         });
       }
     }
-  };
-
+  } catch (error) {
+    console.error('Error checking assignment ownership:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to verify assignment ownership.',
+    });
+  }
+};
   return (
     <div className="mt-24 flex flex-col items-center">
       <h2 className="text-2xl font-bold mb-2 text-center">All Assignments</h2>

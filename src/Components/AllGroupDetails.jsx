@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { AuthContext } from '../provider/MyProvider'; // Import AuthContext
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
 
 const AllGroupDetails = () => {
-  const { id } = useParams(); // Get the assignment ID from the URL
+  const { id } = useParams();
   const [assignment, setAssignment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,9 +15,9 @@ const AllGroupDetails = () => {
     notes: ''
   });
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext); // Get user from AuthContext
 
   useEffect(() => {
-    // Fetch assignment details from the backend
     const fetchAssignment = async () => {
       try {
         const response = await fetch(`http://localhost:3000/api/assignments/${id}`);
@@ -34,7 +35,7 @@ const AllGroupDetails = () => {
           text: 'Failed to load assignment details. Please try again.',
         });
         setLoading(false);
-        navigate('/assignments'); // Redirect to assignments page on error
+        navigate('/assignments');
       }
     };
 
@@ -48,13 +49,27 @@ const AllGroupDetails = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'You must be logged in to submit an assignment.',
+      });
+      navigate('/auth/login');
+      return;
+    }
+
     try {
       const response = await fetch(`http://localhost:3000/api/assignments/${id}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(submission),
+        body: JSON.stringify({
+          ...submission,
+          userEmail: user.email,
+          userName: user.displayName || 'Anonymous'
+        }),
       });
       if (!response.ok) {
         throw new Error('Failed to submit assignment');
@@ -66,6 +81,7 @@ const AllGroupDetails = () => {
       });
       setIsModalOpen(false);
       setSubmission({ googleDocsLink: '', notes: '' });
+      navigate('/auth/pending-assignments'); // Redirect to pending page
     } catch (error) {
       console.error('Error submitting assignment:', error);
       Swal.fire({
@@ -76,7 +92,18 @@ const AllGroupDetails = () => {
     }
   };
 
-  const openModal = () => setIsModalOpen(true);
+  const openModal = () => {
+    if (!user) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login Required',
+        text: 'Please log in to submit an assignment.',
+      });
+      navigate('/auth/login');
+      return;
+    }
+    setIsModalOpen(true);
+  };
   const closeModal = () => setIsModalOpen(false);
 
   if (loading) {
@@ -106,7 +133,7 @@ const AllGroupDetails = () => {
               src={assignment.thumbnailUrl}
               alt={assignment.title}
               className="w-full h-64 object-cover rounded-lg mb-4"
-              onError={(e) => (e.target.src = 'https://via.placeholder.com/150')} // Fallback image
+              onError={(e) => (e.target.src = 'https://via.placeholder.com/150')}
             />
             <p className="text-sm text-gray-600 mb-2">
               <span
@@ -149,7 +176,6 @@ const AllGroupDetails = () => {
         </div>
       </main>
 
-      {/* Modal for Assignment Submission */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">

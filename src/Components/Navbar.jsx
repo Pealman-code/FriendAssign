@@ -89,7 +89,7 @@ const Navbar = () => {
     {
       id: 'pending-assignments',
       label: 'Pending',
-      path: '/pending-assignments',
+      path: '/auth/pending-assignments',
       isNavLink: true,
       requiresAuth: true,
       message: 'Please log in to view pending assignments!',
