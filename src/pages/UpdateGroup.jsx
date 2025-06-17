@@ -12,14 +12,8 @@ const UpdateGroup = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    marks: '',
-    thumbnailUrl: '',
-    difficulty: 'Easy',
-    dueDate: new Date(),
-    userEmail: user?.email || '',
-    userName: user?.displayName || '',
+    title: '', description: '', marks: '', thumbnailUrl: '', difficulty: 'Easy',
+    dueDate: new Date(), userEmail: user?.email || '', userName: user?.displayName || '',
   });
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
@@ -27,60 +21,32 @@ const UpdateGroup = () => {
   const [error, setError] = useState(null);
 
   const validateForm = () => {
-    const newErrors = {};
-    if (!formData.title || formData.title.length < 5) {
-      newErrors.title = 'Title is required and must be at least 5 characters long.';
-    }
-    if (!formData.description || formData.description.length < 20) {
-      newErrors.description = 'Description is required and must be at least 20 characters long.';
-    }
-    if (!formData.marks || isNaN(formData.marks) || formData.marks <= 0) {
-      newErrors.marks = 'Marks must be a positive number.';
-    }
-    if (!formData.thumbnailUrl || !/^https?:\/\/.*\.(?:png|jpg|jpeg|gif)$/i.test(formData.thumbnailUrl)) {
-      newErrors.thumbnailUrl = 'A valid image URL (png, jpg, jpeg, gif) is required.';
-    }
-    if (!formData.dueDate || new Date(formData.dueDate) < new Date()) {
-      newErrors.dueDate = 'Due date is required and must be in the future.';
-    }
-    if (!formData.userEmail) {
-      newErrors.userEmail = 'User email is required.';
-    }
-    if (!formData.userName) {
-      newErrors.userName = 'User name is required.';
-    }
+    const newErrors = {
+      title: !formData.title || formData.title.length < 5 ? 'Title must be at least 5 characters.' : '',
+      description: !formData.description || formData.description.length < 20 ? 'Description must be at least 20 characters.' : '',
+      marks: !formData.marks || isNaN(formData.marks) || formData.marks <= 0 ? 'Marks must be a positive number.' : '',
+      thumbnailUrl: !formData.thumbnailUrl || !/^https?:\/\/.*\.(?:png|jpg|jpeg|gif)$/i.test(formData.thumbnailUrl) ? 'Valid image URL required.' : '',
+      dueDate: !formData.dueDate || new Date(formData.dueDate) < new Date() ? 'Due date must be in the future.' : '',
+      userEmail: !formData.userEmail ? 'User email required.' : '',
+      userName: !formData.userName ? 'User name required.' : '',
+    };
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return !Object.values(newErrors).some(error => error);
   };
 
   useEffect(() => {
     if (!user) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Not Logged In',
-        text: 'Please log in to edit assignments.',
-      }).then(() => {
-        navigate('/login');
-      });
+      Swal.fire({ icon: 'error', title: 'Not Logged In', text: 'Please log in to edit assignments.' })
+        .then(() => navigate('/login'));
       return;
     }
 
     fetch(`http://localhost:3000/api/assignments/${id}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Assignment not found or server error');
-        }
-        return response.json();
-      })
-      .then((data) => {
+      .then(res => res.ok ? res.json() : Promise.reject('Assignment not found or server error'))
+      .then(data => {
         if (data.userEmail !== user.email) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Unauthorized',
-            text: 'You can only edit your own assignments.',
-          }).then(() => {
-            navigate('/assignments');
-          });
+          Swal.fire({ icon: 'error', title: 'Unauthorized', text: 'You can only edit your own assignments.' })
+            .then(() => navigate('/assignments'));
           return;
         }
         setFormData({
@@ -95,9 +61,9 @@ const UpdateGroup = () => {
         });
         setLoading(false);
       })
-      .catch((error) => {
-        console.error('Error fetching assignment:', error);
-        setError('Failed to load assignment data. Please try again.');
+      .catch(err => {
+        console.error('Error fetching assignment:', err);
+        setError('Failed to load assignment data.');
         setLoading(false);
       });
   }, [id, user, navigate]);
@@ -108,160 +74,77 @@ const UpdateGroup = () => {
       img.onload = () => setImagePreview(formData.thumbnailUrl);
       img.onerror = () => setImagePreview(null);
       img.src = formData.thumbnailUrl;
-    } else {
-      setImagePreview(null);
-    }
+    } else setImagePreview(null);
   }, [formData.thumbnailUrl]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const handleChange = ({ target: { name, value } }) => setFormData({ ...formData, [name]: value });
+  const handleDateChange = date => setFormData({ ...formData, dueDate: date });
 
-  const handleDateChange = (date) => {
-    setFormData({ ...formData, dueDate: date });
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    if (!validateForm()) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Validation Error',
-        text: 'Please fix the errors in the form.',
-      });
-      return;
-    }
+    if (!validateForm()) return Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Please fix the errors in the form.' });
 
     try {
-      const response = await fetch(`http://localhost:3000/api/assignments/${id}`, {
+      const res = await fetch(`http://localhost:3000/api/assignments/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          marks: parseInt(formData.marks),
-          thumbnailUrl: formData.thumbnailUrl,
-          difficulty: formData.difficulty,
-          dueDate: formData.dueDate.toISOString(),
-          userEmail: formData.userEmail,
-          userName: formData.userName,
-        }),
+        body: JSON.stringify({ ...formData, marks: parseInt(formData.marks), dueDate: formData.dueDate.toISOString() }),
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: 'Assignment updated successfully!',
-          timer: 2000,
-          showConfirmButton: false,
-        }).then(() => {
-          navigate('/assignments');
-        });
-      } else {
-        throw new Error(data.message || 'Failed to update assignment');
-      }
+      if (!res.ok) throw new Error((await res.json()).message || 'Failed to update assignment');
+      Swal.fire({ icon: 'success', title: 'Success', text: 'Assignment updated successfully!', timer: 2000, showConfirmButton: false })
+        .then(() => navigate('/assignments'));
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'Failed to update assignment. Please try again.',
-      });
+      Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to update assignment.' });
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Loading assignment data...</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  if (error) return <div className="flex justify-center items-center h-screen text-red-500">{error}</div>;
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-red-500">{error}</p>
-      </div>
-    );
-  }
+  const fields = [
+    { name: 'userEmail', label: 'User Email', type: 'email', readOnly: true },
+    { name: 'userName', label: 'User Name', type: 'text', readOnly: true },
+    { name: 'title', label: 'Title', type: 'text', placeholder: 'Assignment title' },
+    { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Detailed assignment description' },
+    { name: 'marks', label: 'Marks', type: 'number', placeholder: 'Total marks' },
+    { name: 'thumbnailUrl', label: 'Thumbnail URL', type: 'url', placeholder: 'https://example.com/image.jpg' },
+  ];
 
   return (
     <>
       <Navbar />
       <main className="flex-grow pt-20 pb-20">
         <div className="container mx-auto p-4">
-          <form
-            onSubmit={handleSubmit}
-            className="max-w-md mx-auto bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 p-6 rounded-lg shadow-md"
-          >
+          <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-4">Update Assignment</h2>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">User Email</label>
-              <input
-                type="email"
-                name="userEmail"
-                value={formData.userEmail}
-                readOnly
-                className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed"
-                required
-              />
-              {errors.userEmail && <p className="text-red-500 text-sm">{errors.userEmail}</p>}
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">User Name</label>
-              <input
-                type="text"
-                name="userName"
-                value={formData.userName}
-                readOnly
-                className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed"
-                required
-              />
-              {errors.userName && <p className="text-red-500 text-sm">{errors.userName}</p>}
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className={`w-full p-2 border rounded ${errors.title ? 'border-red-500' : ''}`}
-                placeholder="Assignment title"
-                required
-              />
-              {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className={`w-full p-2 border rounded ${errors.description ? 'border-red-500' : ''}`}
-                placeholder="Detailed assignment description"
-                required
-              />
-              {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
-            </div>
-            <div className="mb-4 flex space-x-4">
-              <div className="w-1/2">
-                <label className="block text-sm font-medium mb-1">Marks</label>
-                <input
-                  type="number"
-                  name="marks"
-                  value={formData.marks}
-                  onChange={handleChange}
-                  className={`w-full p-2 border rounded ${errors.marks ? 'border-red-500' : ''}`}
-                  placeholder="Total marks"
-                  required
-                />
-                {errors.marks && <p className="text-red-500 text-sm">{errors.marks}</p>}
+            {fields.map(({ name, label, type, placeholder, readOnly }) => (
+              <div key={name} className="mb-4">
+                <label className="block text-sm font-medium mb-1">{label}</label>
+                {type === 'textarea' ? (
+                  <textarea
+                    name={name}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    className={`w-full p-2 border rounded ${errors[name] ? 'border-red-500' : ''}`}
+                    placeholder={placeholder}
+                    required
+                  />
+                ) : (
+                  <input
+                    type={type}
+                    name={name}
+                    value={formData[name]}
+                    onChange={readOnly ? undefined : handleChange}
+                    readOnly={readOnly}
+                    className={`w-full p-2 border rounded ${readOnly ? 'bg-gray-100 cursor-not-allowed' : ''} ${errors[name] ? 'border-red-500' : ''}`}
+                    placeholder={placeholder}
+                    required
+                  />
+                )}
+                {errors[name] && <p className="text-red-500 text-sm">{errors[name]}</p>}
               </div>
+            ))}
+            <div className="mb-4 flex space-x-4">
               <div className="w-1/2">
                 <label className="block text-sm font-medium mb-1">Difficulty</label>
                 <select
@@ -270,51 +153,23 @@ const UpdateGroup = () => {
                   onChange={handleChange}
                   className="w-full p-2 border rounded"
                 >
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
+                  {['Easy', 'Medium', 'Hard'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               </div>
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Thumbnail URL</label>
-              <input
-                type="url"
-                name="thumbnailUrl"
-                value={formData.thumbnailUrl}
-                onChange={handleChange}
-                className={`w-full p-2 border rounded ${errors.thumbnailUrl ? 'border-red-500' : ''}`}
-                placeholder="https://example.com/image.jpg"
-                required
-              />
-              {errors.thumbnailUrl && <p className="text-red-500 text-sm">{errors.thumbnailUrl}</p>}
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Due Date</label>
-              <DatePicker
-                selected={formData.dueDate}
-                onChange={handleDateChange}
-                className={`w-full p-2 border rounded ${errors.dueDate ? 'border-red-500' : ''}`}
-                dateFormat="MMMM d, yyyy"
-                minDate={new Date()}
-              />
-              {errors.dueDate && <p className="text-red-500 text-sm">{errors.dueDate}</p>}
-            </div>
-            {imagePreview && (
-              <div className="mb-4">
-                <img
-                  src={imagePreview}
-                  alt="Thumbnail Preview"
-                  className="w-full max-h-[150px] object-cover rounded"
+              <div className="w-1/2">
+                <label className="block text-sm font-medium mb-1">Due Date</label>
+                <DatePicker
+                  selected={formData.dueDate}
+                  onChange={handleDateChange}
+                  className={`w-full p-2 border rounded ${errors.dueDate ? 'border-red-500' : ''}`}
+                  dateFormat="MMMM d, yyyy"
+                  minDate={new Date()}
                 />
+                {errors.dueDate && <p className="text-red-500 text-sm">{errors.dueDate}</p>}
               </div>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-            >
-              Update Assignment
-            </button>
+            </div>
+            {imagePreview && <img src={imagePreview} alt="Thumbnail Preview" className="w-full max-h-[150px] object-cover rounded mb-4" />}
+            <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Update Assignment</button>
           </form>
         </div>
       </main>

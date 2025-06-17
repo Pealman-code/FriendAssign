@@ -15,36 +15,24 @@ const Pending = () => {
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    const fetchPendingSubmissions = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/api/submissions/pending');
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
+    fetch('http://localhost:3000/api/submissions/pending')
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.json();
+      })
+      .then((data) => {
         setSubmissions(data);
         setLoading(false);
-      } catch (error) {
-        console.error('Detailed fetch error:', error.message, error.stack);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to load pending submissions. Please try again.',
-        });
+      })
+      .catch(() => {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load submissions.' });
         setLoading(false);
-      }
-    };
-
-    fetchPendingSubmissions();
+      });
   }, []);
 
   const openMarkModal = (submission) => {
     if (!user) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'You must be logged in to mark submissions.',
-      });
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Please log in to mark submissions.' });
       navigate('/auth/login');
       return;
     }
@@ -58,65 +46,31 @@ const Pending = () => {
     setSelectedSubmission(null);
   };
 
-  const handleMarkInputChange = (e) => {
-    const { name, value } = e.target;
-    setMarkData((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleMarkInputChange = (e) => setMarkData({ ...markData, [e.target.name]: e.target.value });
 
   const handleMarkSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'You must be logged in to mark submissions.',
-      });
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Please log in to mark submissions.' });
       navigate('/auth/login');
       return;
     }
-
     if (!markData.obtainedMarks || isNaN(markData.obtainedMarks) || markData.obtainedMarks < 0) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Please enter a valid number for marks.',
-      });
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Enter valid marks.' });
       return;
     }
-
     try {
-      const response = await fetch(`http://localhost:3000/api/submissions/${selectedSubmission._id}/mark`, {
+      const res = await fetch(`http://localhost:3000/api/submissions/${selectedSubmission._id}/mark`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          obtainedMarks: markData.obtainedMarks,
-          feedback: markData.feedback,
-          userEmail: user.email,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...markData, userEmail: user.email }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to mark submission');
-      }
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: 'Submission marked successfully!',
-      });
-
+      if (!res.ok) throw new Error((await res.json()).message || 'Failed to mark submission');
+      Swal.fire({ icon: 'success', title: 'Success', text: 'Submission marked!' });
       setSubmissions(submissions.filter((sub) => sub._id !== selectedSubmission._id));
       closeMarkModal();
     } catch (error) {
-      console.error('Error marking submission:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'Failed to mark submission. Please try again.',
-      });
+      Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to mark submission.' });
     }
   };
 
@@ -154,11 +108,11 @@ const Pending = () => {
                       <td className="py-3 px-6 text-left">{submission.marks}</td>
                       <td className="py-3 px-6 text-left">{submission.userName}</td>
                       <td className="py-3 px-6 text-center">
-                        {user && user.email === submission.userEmail ? (
+                        {user?.email === submission.userEmail ? (
                           <span className="text-gray-600">Your Submission</span>
                         ) : (
                           <button
-                            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
+                            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
                             onClick={() => openMarkModal(submission)}
                           >
                             Give Mark
@@ -174,7 +128,6 @@ const Pending = () => {
         </div>
       </main>
 
-      {/* Modal for Marking Submission */}
       {isModalOpen && selectedSubmission && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
@@ -220,13 +173,13 @@ const Pending = () => {
               </div>
               <div className="flex justify-end space-x-4">
                 <button
-                  className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600 transition-colors"
+                  className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600"
                   onClick={closeMarkModal}
                 >
                   Cancel
                 </button>
                 <button
-                  className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition-colors"
+                  className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
                   onClick={handleMarkSubmit}
                 >
                   Submit

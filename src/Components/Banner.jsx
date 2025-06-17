@@ -1,6 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation } from 'swiper/modules';
+import Swal from 'sweetalert2';
+import { AuthContext } from '../provider/MyProvider';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
@@ -17,21 +20,10 @@ const styles = `
     transform: translateX(0);
   }
 
-  .animate-text-delay-1 {
-    transition-delay: 0.2s;
-  }
-
-  .animate-text-delay-2 {
-    transition-delay: 0.4s;
-  }
-
-  .animate-text-delay-3 {
-    transition-delay: 0.6s;
-  }
-
-  .animate-text-delay-4 {
-    transition-delay: 0.8s;
-  }
+  .animate-text-delay-1 { transition-delay: 0.2s; }
+  .animate-text-delay-2 { transition-delay: 0.4s; }
+  .animate-text-delay-3 { transition-delay: 0.6s; }
+  .animate-text-delay-4 { transition-delay: 0.8s; }
 `;
 
 const Banner = () => {
@@ -42,6 +34,9 @@ const Banner = () => {
   ];
 
   const styleRef = useRef(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     if (!styleRef.current) {
@@ -52,15 +47,38 @@ const Banner = () => {
     }
   }, []);
 
+  const handleCreateClick = () => {
+    if (!user) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Not Logged In',
+        text: 'Please log in to create an assignment.',
+        showCancelButton: true,
+        confirmButtonText: 'Go to Login',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/auth/login');
+        }
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate('/auth/create-assignments');
+    }, 1500);
+  };
+
   return (
     <Swiper
       modules={[Autoplay, Pagination, Navigation]}
       spaceBetween={0}
       slidesPerView={1}
-      autoplay={{
-        delay: 3000,
-        disableOnInteraction: false,
-      }}
+      autoplay={{ delay: 3000, disableOnInteraction: false }}
       pagination={{ clickable: true }}
       navigation
       className="min-h-screen min-w-full"
@@ -92,8 +110,22 @@ const Banner = () => {
                     <span>✅ Submit and Grade Assignments</span>
                   </p>
                 </div>
-                <button className="btn btn-primary -ml-6 mt-4 animate-text animate-text-delay-4">
-                  👉 Create First Assignment
+                <button
+                  className="btn btn-primary -ml-6 mt-4 animate-text animate-text-delay-4"
+                  onClick={handleCreateClick}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center space-x-2">
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Loading...</span>
+                    </span>
+                  ) : (
+                    '👉 Create First Assignment'
+                  )}
                 </button>
               </div>
             </div>
