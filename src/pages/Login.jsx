@@ -1,28 +1,51 @@
-import React, { useContext, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { AuthContext } from "../provider/MyProvider";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import Swal from "sweetalert2";
+import React, { useState, useContext } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../provider/MyProvider';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import Swal from 'sweetalert2';
 
 const Login = () => {
   const { signIn, auth } = useContext(AuthContext);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'A valid email is required.';
+    }
+    if (!formData.password || formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters long.';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleLogin = (e) => {
     e.preventDefault();
-    const form = e.target;
-    const email = form.email.value;
-    const password = form.password.value;
+    if (!validateForm()) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Validation Error',
+        text: 'Please fix the errors in the form.',
+      });
+      return;
+    }
 
-    signIn(email, password)
+    signIn(formData.email, formData.password)
       .then(() => {
-        Swal.fire("Success", "Login successful!", "success");
-        navigate("/");
+        Swal.fire('Success', 'Login successful!', 'success');
+        navigate('/');
       })
       .catch((error) => {
-        Swal.fire("Error", error.message, "error");
+        Swal.fire('Error', error.message, 'error');
       });
   };
 
@@ -30,11 +53,11 @@ const Login = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then(() => {
-        Swal.fire("Success", "Google login successful!", "success");
-        navigate("/");
+        Swal.fire('Success', 'Google login successful!', 'success');
+        navigate('/');
       })
       .catch((error) => {
-        Swal.fire("Error", error.message, "error");
+        Swal.fire('Error', error.message, 'error');
       });
   };
 
@@ -47,30 +70,32 @@ const Login = () => {
           <input
             name="email"
             type="email"
-            className="input"
+            className={`input ${errors.email ? 'border-red-500' : ''}`}
             placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleChange}
             required
           />
+          {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+
           <label className="label">Password</label>
           <div className="relative">
             <input
               name="password"
-              type={showPassword ? "text" : "password"}
-              className="input w-full"
+              type={showPassword ? 'text' : 'password'}
+              className={`input w-full ${errors.password ? 'border-red-500' : ''}`}
               placeholder="Password"
-              required
+              value={formData.password}
             />
             <span
               className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? "🙈" : "👁️"}
+              {showPassword ? '🙈' : '👁️'}
             </span>
           </div>
-          <div className="mt-2">
-          </div>
+          {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+
           <button type="submit" className="btn btn-neutral mt-4 w-full">Login</button>
           <button
             type="button"
@@ -80,7 +105,7 @@ const Login = () => {
             Login with Google
           </button>
           <p className="font-semibold text-center mt-4">
-            Don't have an account?{" "}
+            Don't have an account?{' '}
             <NavLink className="link link-secondary" to="/auth/register">
               Register
             </NavLink>

@@ -21,11 +21,38 @@ const UpdateGroup = () => {
     userEmail: user?.email || '',
     userName: user?.displayName || '',
   });
+  const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch assignment data
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.title || formData.title.length < 5) {
+      newErrors.title = 'Title is required and must be at least 5 characters long.';
+    }
+    if (!formData.description || formData.description.length < 20) {
+      newErrors.description = 'Description is required and must be at least 20 characters long.';
+    }
+    if (!formData.marks || isNaN(formData.marks) || formData.marks <= 0) {
+      newErrors.marks = 'Marks must be a positive number.';
+    }
+    if (!formData.thumbnailUrl || !/^https?:\/\/.*\.(?:png|jpg|jpeg|gif)$/i.test(formData.thumbnailUrl)) {
+      newErrors.thumbnailUrl = 'A valid image URL (png, jpg, jpeg, gif) is required.';
+    }
+    if (!formData.dueDate || new Date(formData.dueDate) < new Date()) {
+      newErrors.dueDate = 'Due date is required and must be in the future.';
+    }
+    if (!formData.userEmail) {
+      newErrors.userEmail = 'User email is required.';
+    }
+    if (!formData.userName) {
+      newErrors.userName = 'User name is required.';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   useEffect(() => {
     if (!user) {
       Swal.fire({
@@ -75,7 +102,6 @@ const UpdateGroup = () => {
       });
   }, [id, user, navigate]);
 
-  // Handle image preview
   useEffect(() => {
     if (formData.thumbnailUrl) {
       const img = new Image();
@@ -98,20 +124,11 @@ const UpdateGroup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !formData.title ||
-      !formData.description ||
-      !formData.marks ||
-      !formData.thumbnailUrl ||
-      !imagePreview ||
-      formData.description.length < 20 ||
-      !formData.userEmail ||
-      !formData.userName
-    ) {
+    if (!validateForm()) {
       Swal.fire({
         icon: 'error',
         title: 'Validation Error',
-        text: 'Please fill all required fields, ensure the description is at least 20 characters long, and provide a valid image URL for the thumbnail.',
+        text: 'Please fix the errors in the form.',
       });
       return;
     }
@@ -192,6 +209,7 @@ const UpdateGroup = () => {
                 className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed"
                 required
               />
+              {errors.userEmail && <p className="text-red-500 text-sm">{errors.userEmail}</p>}
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">User Name</label>
@@ -203,6 +221,7 @@ const UpdateGroup = () => {
                 className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed"
                 required
               />
+              {errors.userName && <p className="text-red-500 text-sm">{errors.userName}</p>}
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Title</label>
@@ -211,10 +230,11 @@ const UpdateGroup = () => {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded ${formData.title ? 'bg-white' : ''}`}
+                className={`w-full p-2 border rounded ${errors.title ? 'border-red-500' : ''}`}
                 placeholder="Assignment title"
                 required
               />
+              {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Description</label>
@@ -222,15 +242,11 @@ const UpdateGroup = () => {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded ${formData.description ? 'bg-white' : ''}`}
+                className={`w-full p-2 border rounded ${errors.description ? 'border-red-500' : ''}`}
                 placeholder="Detailed assignment description"
                 required
               />
-              {formData.description.length < 20 && formData.description.length > 0 && (
-                <p className="text-red-500 text-sm mt-1">
-                  📝 Description must be at least 20 characters long.
-                </p>
-              )}
+              {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
             </div>
             <div className="mb-4 flex space-x-4">
               <div className="w-1/2">
@@ -240,10 +256,11 @@ const UpdateGroup = () => {
                   name="marks"
                   value={formData.marks}
                   onChange={handleChange}
-                  className={`w-full p-2 border rounded ${formData.marks ? 'bg-white' : ''}`}
+                  className={`w-full p-2 border rounded ${errors.marks ? 'border-red-500' : ''}`}
                   placeholder="Total marks"
                   required
                 />
+                {errors.marks && <p className="text-red-500 text-sm">{errors.marks}</p>}
               </div>
               <div className="w-1/2">
                 <label className="block text-sm font-medium mb-1">Difficulty</label>
@@ -266,19 +283,22 @@ const UpdateGroup = () => {
                 name="thumbnailUrl"
                 value={formData.thumbnailUrl}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded ${formData.thumbnailUrl ? 'bg-white' : ''}`}
+                className={`w-full p-2 border rounded ${errors.thumbnailUrl ? 'border-red-500' : ''}`}
                 placeholder="https://example.com/image.jpg"
                 required
               />
+              {errors.thumbnailUrl && <p className="text-red-500 text-sm">{errors.thumbnailUrl}</p>}
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Due Date</label>
               <DatePicker
                 selected={formData.dueDate}
                 onChange={handleDateChange}
-                className="w-full p-2 border rounded"
+                className={`w-full p-2 border rounded ${errors.dueDate ? 'border-red-500' : ''}`}
                 dateFormat="MMMM d, yyyy"
+                minDate={new Date()}
               />
+              {errors.dueDate && <p className="text-red-500 text-sm">{errors.dueDate}</p>}
             </div>
             {imagePreview && (
               <div className="mb-4">
